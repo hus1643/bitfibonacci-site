@@ -543,6 +543,163 @@
       text-underline-offset: 3px;
     }
 
+    /* ==========================================================================
+       4B. LIVE MATH PIPELINE & SIGMOID VISUALISER
+       ========================================================================== */
+    .math-panel {
+      margin: 0 1.25rem 1rem;
+      padding: 0.95rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(13, 17, 25, 0.92);
+      border: 1px solid rgba(16, 185, 129, 0.24);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .math-panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .math-panel-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #34D399;
+    }
+
+    .math-toggle-group {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.2rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+      gap: 0.2rem;
+    }
+
+    .math-mode-btn {
+      padding: 0.24rem 0.55rem;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .math-mode-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .math-mode-btn.active {
+      background: var(--bg-surface-elevated);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.28);
+    }
+
+    .math-body.hidden {
+      display: none;
+    }
+
+    .math-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .equation-card {
+      padding: 0.65rem 0.75rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.65;
+      color: #CBD5E1;
+      overflow-x: auto;
+    }
+
+    .eq-step-tag {
+      display: block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .eq-symbolic {
+      color: #94A3B8;
+      font-size: 0.69rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .eq-live {
+      color: #F8FAFC;
+      white-space: nowrap;
+    }
+
+    .term-pos {
+      color: #34D399;
+      font-weight: 600;
+    }
+
+    .term-neg {
+      color: #FBBF24;
+      font-weight: 600;
+    }
+
+    .term-z {
+      color: #A5B4FC;
+      font-weight: 700;
+    }
+
+    .term-prob {
+      color: #FFFFFF;
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 0.06rem 0.38rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .sigmoid-box {
+      position: relative;
+      border-radius: var(--radius-sm);
+      background: #080B10;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 0.5rem 0.6rem 0.35rem;
+    }
+
+    .sigmoid-caption {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .sigmoid-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
     /* Interactive Feature Sliders */
     .sliders-panel {
       padding: 0.25rem 1.25rem 1.25rem;
@@ -894,6 +1051,103 @@
           </p>
         </div>
 
+        <!-- Live Math Pipeline & Sigmoid Activation Visualiser -->
+        <section class="math-panel" aria-label="Live Mathematical Pipeline and Sigmoid Curve">
+          <div class="math-panel-header">
+            <div class="math-panel-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Under-the-Hood Math • σ(z)</span>
+            </div>
+            <div class="math-toggle-group" role="group" aria-label="Toggle Math Detail">
+              <button type="button" class="math-mode-btn active" data-math-view="both">Curve + Equations</button>
+              <button type="button" class="math-mode-btn" data-math-view="curve">Curve Only</button>
+              <button type="button" class="math-mode-btn" data-math-view="hide">Hide Math</button>
+            </div>
+          </div>
+
+          <div class="math-body" id="math-body">
+            <!-- Step 1 & 2: Live Substituted Equations -->
+            <div class="equation-card" id="equation-card">
+              <span class="eq-step-tag">Step 1 • Linear Logit &amp; Shapley Shift: z = z₀ + φ₁ + φ₂ + φ₃</span>
+              <div class="eq-symbolic" id="eq-symbolic">z = b + w₁·x₁ + w₂·x₂ + w₃·x₃</div>
+              <div class="eq-live" id="eq-logit-live"></div>
+
+              <span class="eq-step-tag" style="margin-top:0.5rem;">Step 2 • Logistic Sigmoid Activation: P(y=1 | x) = σ(z) = 1 / (1 + e⁻ᶻ)</span>
+              <div class="eq-live" id="eq-sigmoid-live"></div>
+            </div>
+
+            <!-- Interactive SVG Sigmoid Curve Plot -->
+            <div class="sigmoid-box" id="sigmoid-box">
+              <div class="sigmoid-caption">
+                <span>Sigmoid S-Curve: Log-Odds (z) → Probability P(y=1)</span>
+                <span id="sigmoid-coords" style="color:#A5B4FC;">z = +1.66 → 84%</span>
+              </div>
+              <svg
+                id="sigmoid-svg"
+                class="sigmoid-svg"
+                viewBox="0 0 420 165"
+                role="img"
+                aria-label="Interactive Sigmoid Activation Curve showing baseline z0, SHAP log-odds shifts, and predicted probability"
+              >
+                <defs>
+                  <linearGradient id="sigmoidCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#F59E0B" />
+                    <stop offset="50%" stop-color="#6366F1" />
+                    <stop offset="100%" stop-color="#10B981" />
+                  </linearGradient>
+                  <filter id="glowPoint" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <!-- Plot Area: x from 42 to 398 (width 356, z in [-6, 6]), y from 16 to 128 (height 112, P in [0, 1]) -->
+                <!-- Horizontal Grid Lines (100%, 50%, 0%) -->
+                <line x1="42" y1="16" x2="398" y2="16" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 3" />
+                <line x1="42" y1="72" x2="398" y2="72" stroke="rgba(255,255,255,0.14)" stroke-dasharray="3 3" />
+                <line x1="42" y1="128" x2="398" y2="128" stroke="rgba(255,255,255,0.18)" />
+
+                <!-- Vertical Center Axis (z = 0) -->
+                <line x1="220" y1="12" x2="220" y2="132" stroke="rgba(255,255,255,0.18)" />
+
+                <!-- Y-axis Labels -->
+                <text x="36" y="20" text-anchor="end" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="9">100%</text>
+                <text x="36" y="75" text-anchor="end" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="9">50%</text>
+                <text x="36" y="131" text-anchor="end" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="9">0%</text>
+
+                <!-- X-axis Tick Labels -->
+                <text x="42" y="143" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8.5">-6</text>
+                <text x="131" y="143" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8.5">-3</text>
+                <text x="220" y="143" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8.5">0</text>
+                <text x="309" y="143" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8.5">+3</text>
+                <text x="398" y="143" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="8.5">+6</text>
+
+                <!-- Sigmoid Curve Path (generated cleanly via JS) -->
+                <path id="sigmoid-path" fill="none" stroke="url(#sigmoidCurveGrad)" stroke-width="2.5" stroke-linecap="round" />
+
+                <!-- Horizontal SHAP Push Vector Bar along bottom axis (z0 -> z) -->
+                <g id="shap-vectors-group"></g>
+
+                <!-- Baseline E[f(x)] Marker (z0) -->
+                <line id="base-drop-line" x1="220" y1="72" x2="220" y2="128" stroke="#64748B" stroke-width="1" stroke-dasharray="2 2" />
+                <circle id="base-point" cx="220" cy="72" r="3.5" fill="#1E293B" stroke="#94A3B8" stroke-width="1.5" />
+                <text id="base-label" x="220" y="64" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="8">z₀</text>
+
+                <!-- Active Prediction Crosshairs & Glowing Marker -->
+                <line id="active-v-line" x1="220" y1="72" x2="220" y2="128" stroke="#10B981" stroke-width="1.2" stroke-dasharray="3 2" />
+                <line id="active-h-line" x1="42" y1="72" x2="220" y2="72" stroke="#10B981" stroke-width="1.2" stroke-dasharray="3 2" />
+                <circle id="active-point" cx="220" cy="72" r="5.5" fill="#10B981" stroke="#F8FAFC" stroke-width="1.8" filter="url(#glowPoint)" />
+                <text id="active-z-tag" x="220" y="157" text-anchor="middle" fill="#34D399" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="600">z = +0.00</text>
+              </svg>
+            </div>
+          </div>
+        </section>
+
         <!-- Interactive Input Sliders -->
         <div class="sliders-panel" id="sliders-panel">
           <!-- Dynamically populated by JS -->
@@ -993,6 +1247,7 @@
           features: [
             {
               id: 'study',
+              symbol: 'x₁',
               label: 'Weekly Study Hours',
               shortName: 'study hours',
               min: 0,
@@ -1001,10 +1256,13 @@
               defaultVal: 7.5,
               neutralVal: 4.0,
               weight: 5.5, // +5.5% per hour above neutral
-              format: (v) => `${v.toFixed(1)} hrs/wk`
+              logitWeight: 0.34, // log-odds slope per hour
+              format: (v) => `${v.toFixed(1)} hrs/wk`,
+              numFormat: (v) => v.toFixed(1)
             },
             {
               id: 'sleep',
+              symbol: 'x₂',
               label: 'Nightly Sleep',
               shortName: 'sleep duration',
               min: 4,
@@ -1013,10 +1271,13 @@
               defaultVal: 5.5,
               neutralVal: 7.0,
               weight: 4.5, // -6.75% at 5.5 hrs
-              format: (v) => `${v.toFixed(1)} hrs`
+              logitWeight: 0.28,
+              format: (v) => `${v.toFixed(1)} hrs`,
+              numFormat: (v) => v.toFixed(1)
             },
             {
               id: 'quizzes',
+              symbol: 'x₃',
               label: 'Practice Quizzes Done',
               shortName: 'practice quizzes',
               min: 0,
@@ -1025,7 +1286,9 @@
               defaultVal: 7,
               neutralVal: 4,
               weight: 3.8, // +11.4% at 7 quizzes
-              format: (v) => `${v} quizzes`
+              logitWeight: 0.24,
+              format: (v) => `${v} quizzes`,
+              numFormat: (v) => `${v}`
             }
           ],
           buildStory: (finalScore, contribs) => {
@@ -1068,6 +1331,7 @@
           features: [
             {
               id: 'hr',
+              symbol: 'x₁',
               label: 'Resting Heart Rate',
               shortName: 'heart rate',
               min: 55,
@@ -1076,10 +1340,13 @@
               defaultVal: 104,
               neutralVal: 76,
               weight: 0.72, // +20% at 104 bpm
-              format: (v) => `${v} bpm`
+              logitWeight: 0.036,
+              format: (v) => `${v} bpm`,
+              numFormat: (v) => `${v}`
             },
             {
               id: 'biomarker',
+              symbol: 'x₂',
               label: 'Inflammation Biomarker (CRP)',
               shortName: 'CRP biomarker',
               min: 1,
@@ -1088,10 +1355,13 @@
               defaultVal: 14,
               neutralVal: 5,
               weight: 1.65, // +15% at 14 mg/L
-              format: (v) => `${v} mg/L`
+              logitWeight: 0.082,
+              format: (v) => `${v} mg/L`,
+              numFormat: (v) => `${v}`
             },
             {
               id: 'activity',
+              symbol: 'x₃',
               label: 'Daily Mobility Score',
               shortName: 'mobility score',
               min: 1,
@@ -1100,7 +1370,9 @@
               defaultVal: 8,
               neutralVal: 5,
               weight: -3.8, // -11.4% risk reduction when active
-              format: (v) => `${v} / 10`
+              logitWeight: -0.19,
+              format: (v) => `${v} / 10`,
+              numFormat: (v) => `${v}`
             }
           ],
           buildStory: (finalScore, contribs) => {
@@ -1119,7 +1391,7 @@
               protectiveText = ' compared to the hospital baseline of 32%.';
             }
 
-            return `The triage model flags an ${tier} <span class="hl-score">${finalScore}% risk score</span> driven mostly by <span class="${topCls}">${top.shortName} at ${top.formattedVal} (${topSign})</span>${protectiveText}`;
+            return `The triage model flags a ${tier} <span class="hl-score">${finalScore}% risk score</span> driven mostly by <span class="${topCls}">${top.shortName} at ${top.formattedVal} (${topSign})</span>${protectiveText}`;
           }
         }
       };
@@ -1141,6 +1413,46 @@
       const slidersPanel = document.getElementById('sliders-panel');
       const resetDemoBtn = document.getElementById('reset-demo-btn');
       const scenarioBtns = document.querySelectorAll('.scenario-btn');
+
+      // Math Visualiser DOM Elements
+      const mathBody = document.getElementById('math-body');
+      const equationCard = document.getElementById('equation-card');
+      const sigmoidBox = document.getElementById('sigmoid-box');
+      const mathModeBtns = document.querySelectorAll('.math-mode-btn');
+      const eqSymbolic = document.getElementById('eq-symbolic');
+      const eqLogitLive = document.getElementById('eq-logit-live');
+      const eqSigmoidLive = document.getElementById('eq-sigmoid-live');
+      const sigmoidCoords = document.getElementById('sigmoid-coords');
+      const sigmoidPath = document.getElementById('sigmoid-path');
+      const shapVectorsGroup = document.getElementById('shap-vectors-group');
+      const baseDropLine = document.getElementById('base-drop-line');
+      const basePoint = document.getElementById('base-point');
+      const baseLabel = document.getElementById('base-label');
+      const activeVLine = document.getElementById('active-v-line');
+      const activeHLine = document.getElementById('active-h-line');
+      const activePoint = document.getElementById('active-point');
+      const activeZTag = document.getElementById('active-z-tag');
+
+      // Pre-render the static Sigmoid curve path across z in [-6, 6]
+      const PLOT = { xMin: 42, xMax: 398, yTop: 16, yBottom: 128, zMin: -6, zMax: 6 };
+      const sigmoidFn = (z) => 1 / (1 + Math.exp(-z));
+      const logitFn = (p) => Math.log(p / (1 - p));
+      const zToX = (z) => {
+        const clamped = Math.max(PLOT.zMin, Math.min(PLOT.zMax, z));
+        return PLOT.xMin + ((clamped - PLOT.zMin) / (PLOT.zMax - PLOT.zMin)) * (PLOT.xMax - PLOT.xMin);
+      };
+      const pToY = (p) => PLOT.yBottom - p * (PLOT.yBottom - PLOT.yTop);
+
+      (function buildSigmoidCurvePath() {
+        const pts = [];
+        const steps = 90;
+        for (let i = 0; i <= steps; i++) {
+          const z = PLOT.zMin + (i / steps) * (PLOT.zMax - PLOT.zMin);
+          const p = sigmoidFn(z);
+          pts.push(`${i === 0 ? 'M' : 'L'} ${zToX(z).toFixed(2)} ${pToY(p).toFixed(2)}`);
+        }
+        sigmoidPath.setAttribute('d', pts.join(' '));
+      })();
 
       function initScenario(key) {
         currentKey = key;
@@ -1211,10 +1523,29 @@
         // Max bar scale (+/- 30% fills half-track cleanly)
         const maxVisualDelta = 30;
 
+        // Exact Logit (log-odds) calculation for the live mathematical pipeline
+        const p0 = sc.baseline / 100;
+        const z0 = logitFn(p0);
+        let interceptB = z0;
+        let zTotal = z0;
+        const mathTerms = [];
+
         sc.features.forEach((f) => {
           const val = currentValues[f.id];
           const delta = (val - f.neutralVal) * f.weight;
           totalScore += delta;
+
+          // Log-odds Shapley contribution φ_i = w_i * (x_i - x̄_i)
+          const phiZ = (val - f.neutralVal) * f.logitWeight;
+          interceptB -= f.logitWeight * f.neutralVal;
+          zTotal += phiZ;
+          mathTerms.push({
+            symbol: f.symbol,
+            val,
+            numStr: f.numFormat(val),
+            weight: f.logitWeight,
+            phiZ
+          });
 
           // Update slider pill readout
           const valPill = document.getElementById(`val-${f.id}`);
@@ -1264,7 +1595,108 @@
 
         // Update Plain-English narrative
         storyText.innerHTML = sc.buildStory(finalScore, contribs);
+
+        // Update Live Mathematical Equations & Sigmoid Plot
+        updateMathVisualiser(sc, z0, p0, interceptB, zTotal, mathTerms);
       }
+
+      function updateMathVisualiser(sc, z0, p0, interceptB, zTotal, mathTerms) {
+        const fmtSigned = (n, decimals = 2) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(decimals)}`;
+        const probExact = sigmoidFn(zTotal);
+        const probPct = Math.round(probExact * 100);
+
+        // 1. Symbolic & Live-Substituted Linear Logit Equation
+        eqSymbolic.textContent = `z = b + ${mathTerms.map((t) => `${t.weight >= 0 ? '' : '('}${t.weight}·${t.symbol}${t.weight >= 0 ? '' : ')'}`).join(' + ')}   [base z₀ = ${fmtSigned(z0)}]`;
+
+        const phiBreakdown = mathTerms.map((t) => {
+          const cls = t.phiZ >= 0 ? 'term-pos' : 'term-neg';
+          return `<span class="${cls}" title="${t.symbol} = ${t.numStr}">${fmtSigned(t.phiZ)}</span>`;
+        }).join(' ');
+
+        eqLogitLive.innerHTML = `z = ${z0.toFixed(2)} ${phiBreakdown} = <span class="term-z">${fmtSigned(zTotal)}</span>`;
+
+        // 2. Sigmoid Equation Output
+        const expNegZ = Math.exp(-zTotal);
+        const expDisplay = expNegZ > 99 ? expNegZ.toFixed(0) : expNegZ.toFixed(2);
+        eqSigmoidLive.innerHTML = `σ(${fmtSigned(zTotal)}) = 1 / (1 + e<sup>${(-zTotal).toFixed(2)}</sup>) = 1 / (1 + ${expDisplay}) = <span class="term-prob">${(probExact * 100).toFixed(1)}%</span>`;
+
+        // 3. Sigmoid Plot Coordinates & SHAP Push Vectors
+        sigmoidCoords.textContent = `z = ${fmtSigned(zTotal)} → ${probPct}%`;
+
+        const x0 = zToX(z0);
+        const y0 = pToY(p0);
+        baseDropLine.setAttribute('x1', x0.toFixed(1));
+        baseDropLine.setAttribute('x2', x0.toFixed(1));
+        baseDropLine.setAttribute('y1', y0.toFixed(1));
+        basePoint.setAttribute('cx', x0.toFixed(1));
+        basePoint.setAttribute('cy', y0.toFixed(1));
+        baseLabel.setAttribute('x', x0.toFixed(1));
+        baseLabel.setAttribute('y', Math.max(12, y0 - 7).toFixed(1));
+
+        // Draw segmented horizontal SHAP vectors along the z-axis (y = 124)
+        let runningZ = z0;
+        let vectorsSvg = '';
+        mathTerms.forEach((t) => {
+          const nextZ = runningZ + t.phiZ;
+          const xStart = zToX(runningZ);
+          const xEnd = zToX(nextZ);
+          const width = Math.abs(xEnd - xStart);
+          if (width > 1.2) {
+            const left = Math.min(xStart, xEnd);
+            const color = t.phiZ >= 0 ? '#10B981' : '#F59E0B';
+            vectorsSvg += `<rect x="${left.toFixed(1)}" y="122" width="${width.toFixed(1)}" height="4.5" rx="2" fill="${color}" opacity="0.9" />`;
+          }
+          runningZ = nextZ;
+        });
+        shapVectorsGroup.innerHTML = vectorsSvg;
+
+        // Active Point & Crosshairs
+        const xAct = zToX(zTotal);
+        const yAct = pToY(probExact);
+        const isAmber = sc.invertColorMeaning ? probPct >= 55 : probPct < 55;
+        const activeColor = isAmber ? '#F59E0B' : '#10B981';
+
+        activeVLine.setAttribute('x1', xAct.toFixed(1));
+        activeVLine.setAttribute('x2', xAct.toFixed(1));
+        activeVLine.setAttribute('y1', yAct.toFixed(1));
+        activeVLine.setAttribute('stroke', activeColor);
+
+        activeHLine.setAttribute('y1', yAct.toFixed(1));
+        activeHLine.setAttribute('y2', yAct.toFixed(1));
+        activeHLine.setAttribute('x2', xAct.toFixed(1));
+        activeHLine.setAttribute('stroke', activeColor);
+
+        activePoint.setAttribute('cx', xAct.toFixed(1));
+        activePoint.setAttribute('cy', yAct.toFixed(1));
+        activePoint.setAttribute('fill', activeColor);
+
+        // Clamp bottom z-tag so it never clips outside SVG bounds
+        const clampedTagX = Math.max(66, Math.min(374, xAct));
+        activeZTag.setAttribute('x', clampedTagX.toFixed(1));
+        activeZTag.setAttribute('fill', activeColor);
+        activeZTag.textContent = `z = ${fmtSigned(zTotal)}`;
+      }
+
+      // Math Visualiser Mode Toggle
+      mathModeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          mathModeBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const mode = btn.dataset.mathView;
+
+          if (mode === 'hide') {
+            mathBody.classList.add('hidden');
+          } else if (mode === 'curve') {
+            mathBody.classList.remove('hidden');
+            equationCard.style.display = 'none';
+            sigmoidBox.style.display = 'block';
+          } else {
+            mathBody.classList.remove('hidden');
+            equationCard.style.display = 'block';
+            sigmoidBox.style.display = 'block';
+          }
+        });
+      });
 
       // Scenario Tab Switching
       scenarioBtns.forEach((btn) => {
